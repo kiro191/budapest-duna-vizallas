@@ -1,127 +1,127 @@
 # ============================================================
-# Budapest - Duna aktuális vízállás
-# Budapest, 1646,500 fkm
-# Vízügy - törzsszám 1026
+# Budapest, Paks - Duna aktuális vízállás
+# Budapest: 1646,500 fkm | Vízügy törzsszám 1026
+# Paks:     1531,300 fkm | Vízügy törzsszám 549
 # ============================================================
 
 library(rvest)
 library(stringr)
 
 # ------------------------------------------------------------
-# Hivatalos Vízügy oldal
+# Vízügy oldalak
 # ------------------------------------------------------------
 
-url <- paste0(
+url_budapest <- paste0(
   "https://www.vizugy.hu/",
   "?AllomasVOA=16496059-97AB-11D4-BB62-00508BA24287",
   "&mapData=OrasIdosor",
   "&mapModule=OpGrafikon"
 )
 
-# ------------------------------------------------------------
-# Weboldal letöltése
-# ------------------------------------------------------------
-
-oldal <- read_html(url)
-
-# ------------------------------------------------------------
-# Táblázat beolvasása
-# ------------------------------------------------------------
-
-tablazatok <- html_table(oldal, fill = TRUE)
-
-adat <- tablazatok[[1]]
+url_paks <- paste0(
+  "https://www.vizugy.hu/",
+  "?AllomasVOA=16496188-97AB-11D4-BB62-00508BA24287",
+  "&mapData=OrasIdosor",
+  "&mapModule=OpGrafikon"
+)
 
 # ------------------------------------------------------------
-# Legfrissebb mérés
+# Segédfüggvény: legfrissebb mérés kiolvasása
 # ------------------------------------------------------------
 
-legfrissebb <- adat[1, ]
+meres_kiolvas <- function(url) {
+
+  oldal <- read_html(url)
+
+  tablazatok <- html_table(oldal, fill = TRUE)
+
+  if (length(tablazatok) < 1) {
+    stop("Nem található táblázat a Vízügy oldalán.")
+  }
+
+  adat <- tablazatok[[1]]
+
+  if (nrow(adat) < 1 || ncol(adat) < 8) {
+    stop("A Vízügy táblázat szerkezete megváltozott.")
+  }
+
+  legfrissebb <- adat[1, ]
+
+  idopont <- as.character(legfrissebb[[7]])
+  vizallas <- as.numeric(legfrissebb[[8]])
+
+  list(
+    idopont = idopont,
+    vizallas = vizallas
+  )
+}
 
 # ------------------------------------------------------------
-# Szükséges adatok kiolvasása
+# Budapest és Paks adatok lekérése
 # ------------------------------------------------------------
 
-idopont <- as.character(legfrissebb[[7]])
-vizallas <- as.numeric(legfrissebb[[8]])
+budapest <- meres_kiolvas(url_budapest)
+paks <- meres_kiolvas(url_paks)
+
+idopont_budapest <- budapest$idopont
+vizallas_budapest <- budapest$vizallas
+
+idopont_paks <- paks$idopont
+vizallas_paks <- paks$vizallas
 
 # ------------------------------------------------------------
-# Eredmény megjelenítése
+# Konzol
 # ------------------------------------------------------------
 
 cat("\n")
-cat("========================================\n")
-cat(" BUDAPEST - DUNA\n")
-cat(" 1646,500 fkm | 1026\n")
-cat("========================================\n")
-cat("Mérés időpontja: ", idopont, "\n")
-cat("Vízállás:        ", vizallas, "cm\n")
-cat("========================================\n")
+cat("============================================================\n")
+cat(" BUDAPEST, PAKS - DUNA\n")
+cat("============================================================\n")
+
+cat("BUDAPEST\n")
+cat(" 1646,500 fkm | törzsszám 1026\n")
+cat(" Mérés időpontja: ", idopont_budapest, "\n")
+cat(" Vízállás:        ", vizallas_budapest, " cm\n")
+cat("\n")
+
+cat("PAKS\n")
+cat(" 1531,300 fkm | törzsszám 549\n")
+cat(" Mérés időpontja: ", idopont_paks, "\n")
+cat(" Vízállás:        ", vizallas_paks, " cm\n")
+
+cat("============================================================\n")
 
 # ------------------------------------------------------------
-# Egyszerű adatfájl létrehozása
+# TXT fájl
 # ------------------------------------------------------------
 
 writeLines(
   c(
-    paste0("idopont=", idopont),
-    paste0("vizallas=", vizallas)
+    paste0("Budapest idopont=", idopont_budapest),
+    paste0("Budapest vizallas=", vizallas_budapest),
+    paste0("Paks idopont=", idopont_paks),
+    paste0("Paks vizallas=", vizallas_paks)
   ),
   "budapest_vizallas.txt"
 )
 
-cat("\nAz adat elmentve: budapest_vizallas.txt\n")
+cat("\nAz adatok elmentve: budapest_vizallas.txt\n")
 
 # ------------------------------------------------------------
-# HTML oldal létrehozása
-# ------------------------------------------------------------
-
-html <- paste0(
-  "<!DOCTYPE html>\n",
-  "<html lang='hu'>\n",
-  "<head>\n",
-  "  <meta charset='UTF-8'>\n",
-  "  <meta name='viewport' content='width=device-width, initial-scale=1.0'>\n",
-  "  <title>Budapest Duna vízállás</title>\n",
-  "</head>\n",
-  "<body>\n",
-  "  <h1>BUDAPEST – DUNA</h1>\n",
-  "  <h2>1646,500 fkm</h2>\n",
-  "  <div style='font-size:80px; font-weight:bold;'>",
-  vizallas,
-  " cm</div>\n",
-  "  <p>Mérés időpontja: ",
-  idopont,
-  "</p>\n",
-  "  <p>Forrás: Vízügy – Budapest vízmérce 1026</p>\n",
-  "</body>\n",
-  "</html>"
-)
-
-writeLines(
-  html,
-  "budapest_vizallas.html",
-  useBytes = TRUE
-)
-
-cat("HTML oldal elmentve: budapest_vizallas.html\n")
-
-# ------------------------------------------------------------
-# HTML oldal létrehozása
-# ------------------------------------------------------------
-
-# ------------------------------------------------------------
-# Letisztult mobil HTML oldal
+# Mobil HTML oldal
 # ------------------------------------------------------------
 
 html <- paste0(
-  "<!DOCTYPE html>
+"<!DOCTYPE html>
 <html lang='hu'>
 <head>
 <meta charset='UTF-8'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0'>
 
-<title>Budapest Duna vízállás</title>
+<title>Budapest, Paks vízállásai</title>
+
+<meta property='og:title' content='Budapest, Paks vízállásai'>
+<meta property='og:description' content='A Duna aktuális vízállása Budapestnél és Paksnál.'>
 
 <style>
 
@@ -129,26 +129,33 @@ html, body {
     margin: 0;
     padding: 0;
     width: 100%;
-    height: 100%;
+    min-height: 100%;
 }
 
 body {
     font-family: Arial, Helvetica, sans-serif;
     background: #ffffff;
     color: #111111;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
     text-align: center;
 }
 
 .container {
     width: 100%;
     max-width: 600px;
-    padding: 30px 20px;
+    margin: 0 auto;
+    padding: 30px 20px 40px;
     box-sizing: border-box;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-bottom: 35px;
+}
+
+.station-block {
+    margin-bottom: 45px;
 }
 
 .city {
@@ -167,11 +174,11 @@ body {
 .station {
     font-size: 16px;
     color: #666666;
-    margin-bottom: 45px;
+    margin-bottom: 25px;
 }
 
 .water {
-    font-size: 110px;
+    font-size: 100px;
     font-weight: 700;
     line-height: 1;
 }
@@ -179,7 +186,7 @@ body {
 .unit {
     font-size: 30px;
     margin-top: 5px;
-    margin-bottom: 45px;
+    margin-bottom: 25px;
 }
 
 .time {
@@ -188,9 +195,29 @@ body {
 }
 
 .source {
-    margin-top: 50px;
+    margin-top: 35px;
     font-size: 13px;
     color: #888888;
+}
+
+.separator {
+    border: 0;
+    border-top: 1px solid #dddddd;
+    margin: 10px 0 45px;
+}
+
+@media (max-width: 420px) {
+    .page-title {
+        font-size: 24px;
+    }
+
+    .water {
+        font-size: 90px;
+    }
+
+    .city {
+        font-size: 25px;
+    }
 }
 
 </style>
@@ -200,23 +227,49 @@ body {
 
 <div class='container'>
 
-    <div class='city'>BUDAPEST</div>
+    <div class='page-title'>Budapest, Paks vízállásai</div>
 
-    <div class='river'>DUNA</div>
+    <div class='station-block'>
 
-    <div class='station'>1646,5 fkm</div>
+        <div class='city'>BUDAPEST</div>
+        <div class='river'>DUNA</div>
+        <div class='station'>1646,5 fkm · vízmérce 1026</div>
 
-    <div class='water'>",
-vizallas,
+        <div class='water'>",
+vizallas_budapest,
 "</div>
 
-    <div class='unit'>cm</div>
+        <div class='unit'>cm</div>
 
-    <div class='time'>",
-idopont,
+        <div class='time'>",
+idopont_budapest,
 "</div>
 
-    <div class='source'>Vízügy · vízmérce 1026</div>
+    </div>
+
+    <hr class='separator'>
+
+    <div class='station-block'>
+
+        <div class='city'>PAKS</div>
+        <div class='river'>DUNA</div>
+        <div class='station'>1531,3 fkm · vízmérce 549</div>
+
+        <div class='water'>",
+vizallas_paks,
+"</div>
+
+        <div class='unit'>cm</div>
+
+        <div class='time'>",
+idopont_paks,
+"</div>
+
+    </div>
+
+    <div class='source'>
+        Forrás: Vízügy · KDTVIZIG
+    </div>
 
 </div>
 
