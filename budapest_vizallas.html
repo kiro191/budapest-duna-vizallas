@@ -1,13 +1,20 @@
 <!DOCTYPE html>
 <html lang='hu'>
+
 <head>
+
 <meta charset='UTF-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+
+<meta name='viewport'
+      content='width=device-width, initial-scale=1.0'>
 
 <title>Budapest, Paks vízállásai</title>
 
-<meta property='og:title' content='Budapest, Paks vízállásai'>
-<meta property='og:description' content='A Duna aktuális vízállása Budapestnél és Paksnál.'>
+<meta property='og:title'
+      content='Budapest, Paks vízállásai'>
+
+<meta property='og:description'
+      content='A Duna aktuális vízállása Budapestnél és Paksnál.'>
 
 <style>
 
@@ -86,13 +93,32 @@ body {
     color: #888888;
 }
 
-.separator {
-    border: 0;
-    border-top: 1px solid #dddddd;
+/* ----------------------------------------------------------
+   GRAFIKON GOMB
+---------------------------------------------------------- */
+
+.graph-button-container {
     margin: 10px 0 45px;
 }
 
+.graph-button {
+    display: inline-block;
+    padding: 18px 55px;
+    background: #111111;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 24px;
+    font-weight: 600;
+    border-radius: 8px;
+    letter-spacing: 2px;
+}
+
+.graph-button:hover {
+    opacity: 0.8;
+}
+
 @media (max-width: 420px) {
+
     .page-title {
         font-size: 24px;
     }
@@ -104,46 +130,93 @@ body {
     .city {
         font-size: 25px;
     }
+
+    .graph-button {
+        font-size: 22px;
+        padding: 17px 50px;
+    }
+
 }
 
 </style>
+
 </head>
 
 <body>
 
 <div class='container'>
 
-    <div class='page-title'>Budapest, Paks vízállásai</div>
+    <div class='page-title'>
+        Budapest, Paks vízállásai
+    </div>
+
 
     <div class='station-block'>
 
-        <div class='city'>BUDAPEST</div>
-        <div class='river'>DUNA</div>
-        <div class='station'>1646,5 fkm · vízmérce 1026</div>
+        <div class='city'>
+            BUDAPEST
+        </div>
 
-        <div class='water'>38</div>
+        <div class='river'>
+            DUNA
+        </div>
 
-        <div class='unit'>cm</div>
+        <div class='station'>
+            1646,5 fkm · vízmérce 1026
+        </div>
 
-        <div class='time'>2026.08.21. 18:00</div>
+        <div class='water'>41</div>
+
+        <div class='unit'>
+            cm
+        </div>
+
+        <div class='time'>2026.08.21. 19:00</div>
 
     </div>
 
-    <hr class='separator'>
+
+    <!-- =====================================================
+         GRAFIKON GOMB
+    ====================================================== -->
+
+    <div class='graph-button-container'>
+
+        <a
+            class='graph-button'
+            href='https://kiro191.github.io/budapest-duna-vizallas/budapest_vizallas_grafikon.html'>
+
+            Grafikon
+
+        </a>
+
+    </div>
+
 
     <div class='station-block'>
 
-        <div class='city'>PAKS</div>
-        <div class='river'>DUNA</div>
-        <div class='station'>1531,3 fkm · vízmérce 549</div>
+        <div class='city'>
+            PAKS
+        </div>
+
+        <div class='river'>
+            DUNA
+        </div>
+
+        <div class='station'>
+            1531,3 fkm · vízmérce 549
+        </div>
 
         <div class='water'>-123</div>
 
-        <div class='unit'>cm</div>
+        <div class='unit'>
+            cm
+        </div>
 
-        <div class='time'>2026.08.21. 18:00</div>
+        <div class='time'>2026.08.21. 19:00</div>
 
     </div>
+
 
     <div class='source'>
         Forrás: Vízügyi honlap
@@ -152,4 +225,5 @@ body {
 </div>
 
 </body>
+
 </html>
