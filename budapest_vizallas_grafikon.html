@@ -1,1 +1,439 @@
+<!DOCTYPE html>
+<html lang="hu">
 
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>Budapest, Paks – Duna vízállás</title>
+
+<style>
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    background: #ffffff;
+    color: #111111;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+h1 {
+    text-align: center;
+    font-size: 25px;
+    font-weight: 600;
+    margin: 10px 0 5px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666666;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 65vh;
+    min-height: 400px;
+}
+
+.info {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 13px;
+    color: #777777;
+}
+
+.error {
+    text-align: center;
+    color: #b00000;
+    margin-top: 30px;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <h1>Budapest, Paks – Duna vízállás</h1>
+
+    <div class="subtitle">
+        Vízállás az idő függvényében
+    </div>
+
+    <div class="chart-container">
+        <canvas id="waterChart"></canvas>
+    </div>
+
+    <div id="info" class="info">
+        Adatok betöltése...
+    </div>
+
+    <div id="error" class="error"></div>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<script>
+
+const DATA_FILE = "budapest_vizallas_adatok.txt";
+
+let chart = null;
+
+
+/* ----------------------------------------------------------
+   TXT fájl beolvasása
+---------------------------------------------------------- */
+
+async function loadData() {
+
+    try {
+
+        /*
+         * Az időbélyeg megakadályozza,
+         * hogy a böngésző régi TXT-t használjon.
+         */
+
+        const response = await fetch(
+            DATA_FILE + "?t=" + Date.now(),
+            {
+                cache: "no-store"
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                "A TXT fájl nem tölthető be."
+            );
+        }
+
+        const text = await response.text();
+
+        processData(text);
+
+    }
+
+    catch (error) {
+
+        document.getElementById("error").textContent =
+            "Hiba az adatok betöltésekor: " +
+            error.message;
+
+        document.getElementById("info").textContent = "";
+
+    }
+
+}
+
+
+/* ----------------------------------------------------------
+   TXT feldolgozása
+---------------------------------------------------------- */
+
+function processData(text) {
+
+    const lines = text
+        .trim()
+        .split(/\r?\n/)
+        .filter(line => line.trim() !== "");
+
+
+    const data = [];
+
+
+    for (const line of lines) {
+
+        const parts = line.split(";");
+
+        if (parts.length < 3) {
+            continue;
+        }
+
+
+        const time = parts[0].trim();
+
+        const budapest =
+            Number(parts[1].trim());
+
+        const paks =
+            Number(parts[2].trim());
+
+
+        if (
+            !isNaN(budapest) &&
+            !isNaN(paks)
+        ) {
+
+            data.push({
+                time: time,
+                budapest: budapest,
+                paks: paks
+            });
+
+        }
+
+    }
+
+
+    /*
+     * Időrend szerinti rendezés.
+     * Így a grafikon akkor is konzisztens marad,
+     * ha a TXT-ben valamilyen okból nem tökéletes
+     * sorrendben vannak a sorok.
+     */
+
+    data.sort(function(a, b) {
+
+        return parseDate(a.time) -
+               parseDate(b.time);
+
+    });
+
+
+    if (data.length === 0) {
+
+        throw new Error(
+            "Nem található feldolgozható adat."
+        );
+
+    }
+
+
+    createChart(data);
+
+
+    const first = data[0].time;
+    const last = data[data.length - 1].time;
+
+
+    document.getElementById("info").textContent =
+        "Adatok: " +
+        data.length +
+        " mérés · " +
+        first +
+        " – " +
+        last;
+
+}
+
+
+/* ----------------------------------------------------------
+   Magyar időpont átalakítása
+   YYYY.MM.DD. HH:MM
+---------------------------------------------------------- */
+
+function parseDate(value) {
+
+    const match = value.match(
+        /(\d{4})\.(\d{2})\.(\d{2})\.\s*(\d{2}):(\d{2})/
+    );
+
+
+    if (!match) {
+
+        return 0;
+
+    }
+
+
+    return new Date(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3]),
+        Number(match[4]),
+        Number(match[5])
+    ).getTime();
+
+}
+
+
+/* ----------------------------------------------------------
+   Grafikon létrehozása
+---------------------------------------------------------- */
+
+function createChart(data) {
+
+    const labels =
+        data.map(item => item.time);
+
+
+    const budapest =
+        data.map(item => item.budapest);
+
+
+    const paks =
+        data.map(item => item.paks);
+
+
+    const ctx =
+        document.getElementById(
+            "waterChart"
+        ).getContext("2d");
+
+
+    if (chart !== null) {
+
+        chart.destroy();
+
+    }
+
+
+    chart = new Chart(ctx, {
+
+        type: "line",
+
+        data: {
+
+            labels: labels,
+
+            datasets: [
+
+                {
+                    label: "Budapest",
+                    data: budapest,
+
+                    borderWidth: 2,
+
+                    pointRadius: 1,
+
+                    tension: 0.15
+                },
+
+                {
+                    label: "Paks",
+                    data: paks,
+
+                    borderWidth: 2,
+
+                    pointRadius: 1,
+
+                    tension: 0.15
+                }
+
+            ]
+
+        },
+
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+
+            interaction: {
+
+                mode: "index",
+
+                intersect: false
+
+            },
+
+
+            plugins: {
+
+                legend: {
+
+                    display: true,
+
+                    position: "top"
+
+                },
+
+                tooltip: {
+
+                    callbacks: {
+
+                        label: function(context) {
+
+                            return (
+                                context.dataset.label +
+                                ": " +
+                                context.parsed.y +
+                                " cm"
+                            );
+
+                        }
+
+                    }
+
+                }
+
+            },
+
+
+            scales: {
+
+                x: {
+
+                    title: {
+
+                        display: true,
+
+                        text: "Mérés időpontja"
+
+                    },
+
+                    ticks: {
+
+                        maxTicksLimit: 12,
+
+                        autoSkip: true
+
+                    }
+
+                },
+
+
+                y: {
+
+                    title: {
+
+                        display: true,
+
+                        text: "Vízállás (cm)"
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    });
+
+}
+
+
+/* ----------------------------------------------------------
+   Indítás
+---------------------------------------------------------- */
+
+loadData();
+
+</script>
+
+</body>
+
+</html>
