@@ -1,14 +1,13 @@
 <!DOCTYPE html>
-<html lang="hu">
-
+<html lang='hu'>
 <head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
 
-<meta charset="UTF-8">
+<title>Budapest, Paks vízállásai</title>
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
-
-<title>Budapest, Paks - Duna vízállás</title>
+<meta property='og:title' content='Budapest, Paks vízállásai'>
+<meta property='og:description' content='A Duna aktuális vízállása Budapestnél és Paksnál.'>
 
 <style>
 
@@ -16,669 +15,141 @@ html, body {
     margin: 0;
     padding: 0;
     width: 100%;
+    min-height: 100%;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
     background: #ffffff;
     color: #111111;
-    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
 }
 
 .container {
     width: 100%;
-    max-width: 1100px;
+    max-width: 600px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 30px 20px 40px;
     box-sizing: border-box;
 }
 
+.page-title {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-bottom: 35px;
+}
 
-/* ----------------------------------------------------------
-   VISSZA GOMB
----------------------------------------------------------- */
+.station-block {
+    margin-bottom: 45px;
+}
 
-.back-button {
-    display: inline-block;
-    padding: 12px 24px;
-    background: #111111;
-    color: #ffffff;
-    text-decoration: none;
+.city {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    margin-bottom: 5px;
+}
+
+.river {
+    font-size: 22px;
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+}
+
+.station {
     font-size: 16px;
-    font-weight: 600;
-    border-radius: 7px;
-    margin-bottom: 20px;
-}
-
-.back-button:hover {
-    opacity: 0.8;
-}
-
-
-/* ----------------------------------------------------------
-   CÍM
----------------------------------------------------------- */
-
-h1 {
-    text-align: center;
-    font-size: 25px;
-    font-weight: 600;
-    margin: 10px 0 5px;
-}
-
-.subtitle {
-    text-align: center;
     color: #666666;
-    font-size: 14px;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
-
-/* ----------------------------------------------------------
-   GRAFIKON
----------------------------------------------------------- */
-
-.chart-container {
-    position: relative;
-    width: 100%;
-    height: 65vh;
-    min-height: 400px;
+.water {
+    font-size: 100px;
+    font-weight: 700;
+    line-height: 1;
 }
 
+.unit {
+    font-size: 30px;
+    margin-top: 5px;
+    margin-bottom: 25px;
+}
 
-/* ----------------------------------------------------------
-   INFORMÁCIÓ
----------------------------------------------------------- */
+.time {
+    font-size: 18px;
+    color: #555555;
+}
 
-.info {
-    text-align: center;
-    margin-top: 15px;
+.source {
+    margin-top: 35px;
     font-size: 13px;
-    color: #777777;
+    color: #888888;
 }
 
-.error {
-    text-align: center;
-    color: #b00000;
-    margin-top: 30px;
+.separator {
+    border: 0;
+    border-top: 1px solid #dddddd;
+    margin: 10px 0 45px;
+}
+
+@media (max-width: 420px) {
+    .page-title {
+        font-size: 24px;
+    }
+
+    .water {
+        font-size: 90px;
+    }
+
+    .city {
+        font-size: 25px;
+    }
 }
 
 </style>
-
 </head>
-
 
 <body>
 
-<div class="container">
+<div class='container'>
 
+    <div class='page-title'>Budapest, Paks vízállásai</div>
 
-<!-- VISSZA A FŐOLDALRA -->
+    <div class='station-block'>
 
-<a class="back-button"
-   href="https://kiro191.github.io/budapest-duna-vizallas/">
+        <div class='city'>BUDAPEST</div>
+        <div class='river'>DUNA</div>
+        <div class='station'>1646,5 fkm · vízmérce 1026</div>
 
-   ← Vissza
+        <div class='water'>36</div>
 
-</a>
+        <div class='unit'>cm</div>
 
+        <div class='time'>2026.08.21. 17:00</div>
 
-<h1>
-    Budapest, Paks - Duna vízállás
-</h1>
+    </div>
 
+    <hr class='separator'>
 
-<div class="subtitle">
-    Vízállás az idő függvényében
+    <div class='station-block'>
+
+        <div class='city'>PAKS</div>
+        <div class='river'>DUNA</div>
+        <div class='station'>1531,3 fkm · vízmérce 549</div>
+
+        <div class='water'>-124</div>
+
+        <div class='unit'>cm</div>
+
+        <div class='time'>2026.08.21. 17:00</div>
+
+    </div>
+
+    <div class='source'>
+        Forrás: Vízügyi honlap
+    </div>
+
 </div>
-
-
-<div class="chart-container">
-
-    <canvas id="waterChart"></canvas>
-
-</div>
-
-
-<div id="info" class="info">
-    Adatok betöltése...
-</div>
-
-
-<div id="error" class="error"></div>
-
-
-</div>
-
-
-<!-- ========================================================
-     CHART.JS
-========================================================= -->
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
-
-
-<script>
-
-
-/* ==========================================================
-   ADATFÁJL
-========================================================== */
-
-const DATA_FILE =
-    "budapest_vizallas_adatok.txt";
-
-
-let chart = null;
-
-
-/* ==========================================================
-   TXT BETÖLTÉSE
-========================================================== */
-
-async function loadData() {
-
-    try {
-
-        const response =
-            await fetch(
-                DATA_FILE +
-                "?t=" +
-                Date.now(),
-                {
-                    cache: "no-store"
-                }
-            );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                "A TXT fájl nem tölthető be."
-            );
-
-        }
-
-
-        const text =
-            await response.text();
-
-
-        processData(text);
-
-    }
-
-
-    catch (error) {
-
-        document
-            .getElementById("error")
-            .textContent =
-            "Hiba az adatok betöltésekor: " +
-            error.message;
-
-
-        document
-            .getElementById("info")
-            .textContent = "";
-
-    }
-
-}
-
-
-/* ==========================================================
-   TXT FELDOLGOZÁSA
-========================================================== */
-
-function processData(text) {
-
-    const lines =
-        text
-        .trim()
-        .split(/\r?\n/)
-        .filter(
-            line => line.trim() !== ""
-        );
-
-
-    const data = [];
-
-
-    for (const line of lines) {
-
-        const parts =
-            line.split(";");
-
-
-        if (parts.length < 3) {
-
-            continue;
-
-        }
-
-
-        const time =
-            parts[0].trim();
-
-
-        const budapest =
-            Number(parts[1].trim());
-
-
-        const paks =
-            Number(parts[2].trim());
-
-
-        if (
-            !isNaN(budapest) &&
-            !isNaN(paks)
-        ) {
-
-            data.push({
-
-                time: time,
-
-                date: parseDate(time),
-
-                budapest: budapest,
-
-                paks: paks
-
-            });
-
-        }
-
-    }
-
-
-    /* ------------------------------------------------------
-       Időrendi sorrend
-    ------------------------------------------------------ */
-
-    data.sort(
-        function(a, b) {
-
-            return a.date - b.date;
-
-        }
-    );
-
-
-    if (data.length === 0) {
-
-        throw new Error(
-            "Nem található feldolgozható adat."
-        );
-
-    }
-
-
-    createChart(data);
-
-
-    const first =
-        data[0].time;
-
-
-    const last =
-        data[data.length - 1].time;
-
-
-    document
-        .getElementById("info")
-        .textContent =
-        "Adatok: " +
-        data.length +
-        " mérés • " +
-        first +
-        " - " +
-        last;
-
-}
-
-
-/* ==========================================================
-   DÁTUM FELDOLGOZÁSA
-========================================================== */
-
-function parseDate(value) {
-
-    const match =
-        value.match(
-            /(\d{4})\.(\d{2})\.(\d{2})\.\s*(\d{2}):(\d{2})/
-        );
-
-
-    if (!match) {
-
-        return 0;
-
-    }
-
-
-    return new Date(
-
-        Number(match[1]),
-
-        Number(match[2]) - 1,
-
-        Number(match[3]),
-
-        Number(match[4]),
-
-        Number(match[5])
-
-    ).getTime();
-
-}
-
-
-/* ==========================================================
-   IDŐPONT FORMÁZÁSA
-========================================================== */
-
-function formatTime(value) {
-
-    const date =
-        new Date(value);
-
-
-    const year =
-        date.getFullYear();
-
-
-    const month =
-        String(
-            date.getMonth() + 1
-        ).padStart(2, "0");
-
-
-    const day =
-        String(
-            date.getDate()
-        ).padStart(2, "0");
-
-
-    const hour =
-        String(
-            date.getHours()
-        ).padStart(2, "0");
-
-
-    const minute =
-        String(
-            date.getMinutes()
-        ).padStart(2, "0");
-
-
-    return (
-
-        year + "." +
-        month + "." +
-        day + ". " +
-        hour + ":" +
-        minute
-
-    );
-
-}
-
-
-/* ==========================================================
-   GRAFIKON LÉTREHOZÁSA
-========================================================== */
-
-function createChart(data) {
-
-
-    const labels =
-        data.map(
-            item => item.date
-        );
-
-
-    const budapest =
-        data.map(
-            item => item.budapest
-        );
-
-
-    const paks =
-        data.map(
-            item => item.paks
-        );
-
-
-    const ctx =
-        document
-        .getElementById(
-            "waterChart"
-        )
-        .getContext("2d");
-
-
-    if (chart !== null) {
-
-        chart.destroy();
-
-    }
-
-
-    chart = new Chart(
-
-        ctx,
-
-        {
-
-            type: "line",
-
-
-            data: {
-
-                labels: labels,
-
-
-                datasets: [
-
-                    {
-
-                        label: "Budapest",
-
-                        data: budapest,
-
-                        borderWidth: 2,
-
-                        pointRadius: 1,
-
-                        pointHoverRadius: 5,
-
-                        tension: 0.15
-
-                    },
-
-
-                    {
-
-                        label: "Paks",
-
-                        data: paks,
-
-                        borderWidth: 2,
-
-                        pointRadius: 1,
-
-                        pointHoverRadius: 5,
-
-                        tension: 0.15
-
-                    }
-
-                ]
-
-            },
-
-
-            options: {
-
-                responsive: true,
-
-                maintainAspectRatio: false,
-
-
-                interaction: {
-
-                    mode: "index",
-
-                    intersect: false
-
-                },
-
-
-                plugins: {
-
-                    legend: {
-
-                        display: true,
-
-                        position: "top"
-
-                    },
-
-
-                    tooltip: {
-
-                        callbacks: {
-
-                            title:
-                                function(context) {
-
-                                    if (
-                                        context.length === 0
-                                    ) {
-
-                                        return "";
-
-                                    }
-
-
-                                    return formatTime(
-                                        context[0].parsed.x
-                                    );
-
-                                },
-
-
-                            label:
-                                function(context) {
-
-                                    return (
-
-                                        context.dataset.label +
-                                        ": " +
-                                        context.parsed.y +
-                                        " cm"
-
-                                    );
-
-                                }
-
-                        }
-
-                    }
-
-                },
-
-
-                scales: {
-
-                    x: {
-
-                        type: "time",
-
-
-                        time: {
-
-                            tooltipFormat:
-                                "yyyy.MM.dd. HH:mm",
-
-
-                            displayFormats: {
-
-                                hour:
-                                    "MM.dd. HH:mm",
-
-                                day:
-                                    "yyyy.MM.dd.",
-
-                                month:
-                                    "yyyy.MM",
-
-                                year:
-                                    "yyyy"
-
-                            }
-
-                        },
-
-
-                        ticks: {
-
-                            maxTicksLimit: 12,
-
-                            autoSkip: true,
-
-                            maxRotation: 0,
-
-                            minRotation: 0
-
-                        },
-
-
-                        title: {
-
-                            display: true,
-
-                            text:
-                                "Mérés időpontja"
-
-                        }
-
-                    },
-
-
-                    y: {
-
-                        title: {
-
-                            display: true,
-
-                            text:
-                                "Vízállás (cm)"
-
-                        }
-
-                    }
-
-                }
-
-            }
-
-        }
-
-    );
-
-}
-
-
-/* ==========================================================
-   INDÍTÁS
-========================================================== */
-
-loadData();
-
-
-</script>
-
 
 </body>
-
 </html>
