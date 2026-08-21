@@ -7,7 +7,7 @@
 <meta name="viewport"
       content="width=device-width, initial-scale=1.0">
 
-<title>Budapest, Paks – Duna vízállás</title>
+<title>Budapest, Paks - Duna vízállás</title>
 
 <style>
 
@@ -71,7 +71,7 @@ h1 {
 
 <div class="container">
 
-    <h1>Budapest, Paks – Duna vízállás</h1>
+    <h1>Budapest, Paks - Duna vízállás</h1>
 
     <div class="subtitle">
         Vízállás az idő függvényében
@@ -92,6 +92,8 @@ h1 {
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+
 
 <script>
 
@@ -100,18 +102,13 @@ const DATA_FILE = "budapest_vizallas_adatok.txt";
 let chart = null;
 
 
-/* ----------------------------------------------------------
-   TXT fájl beolvasása
----------------------------------------------------------- */
+/* ==========================================================
+   TXT BETÖLTÉSE
+   ========================================================== */
 
 async function loadData() {
 
     try {
-
-        /*
-         * Az időbélyeg megakadályozza,
-         * hogy a böngésző régi TXT-t használjon.
-         */
 
         const response = await fetch(
             DATA_FILE + "?t=" + Date.now(),
@@ -121,9 +118,11 @@ async function loadData() {
         );
 
         if (!response.ok) {
+
             throw new Error(
                 "A TXT fájl nem tölthető be."
             );
+
         }
 
         const text = await response.text();
@@ -145,9 +144,9 @@ async function loadData() {
 }
 
 
-/* ----------------------------------------------------------
-   TXT feldolgozása
----------------------------------------------------------- */
+/* ==========================================================
+   TXT FELDOLGOZÁSA
+   ========================================================== */
 
 function processData(text) {
 
@@ -185,6 +184,7 @@ function processData(text) {
 
             data.push({
                 time: time,
+                date: parseDate(time),
                 budapest: budapest,
                 paks: paks
             });
@@ -194,17 +194,15 @@ function processData(text) {
     }
 
 
-    /*
-     * Időrend szerinti rendezés.
-     * Így a grafikon akkor is konzisztens marad,
-     * ha a TXT-ben valamilyen okból nem tökéletes
-     * sorrendben vannak a sorok.
-     */
+    /* ------------------------------------------------------
+       Időrendi rendezés
+
+       Minden mérési pont megmarad.
+    ------------------------------------------------------ */
 
     data.sort(function(a, b) {
 
-        return parseDate(a.time) -
-               parseDate(b.time);
+        return a.date - b.date;
 
     });
 
@@ -228,18 +226,17 @@ function processData(text) {
     document.getElementById("info").textContent =
         "Adatok: " +
         data.length +
-        " mérés · " +
+        " mérés • " +
         first +
-        " – " +
+        " - " +
         last;
 
 }
 
 
-/* ----------------------------------------------------------
-   Magyar időpont átalakítása
-   YYYY.MM.DD. HH:MM
----------------------------------------------------------- */
+/* ==========================================================
+   DÁTUM FELDOLGOZÁSA
+   ========================================================== */
 
 function parseDate(value) {
 
@@ -266,14 +263,53 @@ function parseDate(value) {
 }
 
 
-/* ----------------------------------------------------------
-   Grafikon létrehozása
----------------------------------------------------------- */
+/* ==========================================================
+   IDŐTENGELY FELIRAT FORMÁZÁSA
+   ========================================================== */
+
+function formatTime(value) {
+
+    const date = new Date(value);
+
+    const year =
+        date.getFullYear();
+
+    const month =
+        String(date.getMonth() + 1)
+        .padStart(2, "0");
+
+    const day =
+        String(date.getDate())
+        .padStart(2, "0");
+
+    const hour =
+        String(date.getHours())
+        .padStart(2, "0");
+
+    const minute =
+        String(date.getMinutes())
+        .padStart(2, "0");
+
+
+    return (
+        year + "." +
+        month + "." +
+        day + ". " +
+        hour + ":" +
+        minute
+    );
+
+}
+
+
+/* ==========================================================
+   GRAFIKON
+   ========================================================== */
 
 function createChart(data) {
 
     const labels =
-        data.map(item => item.time);
+        data.map(item => item.date);
 
 
     const budapest =
@@ -285,9 +321,9 @@ function createChart(data) {
 
 
     const ctx =
-        document.getElementById(
-            "waterChart"
-        ).getContext("2d");
+        document
+        .getElementById("waterChart")
+        .getContext("2d");
 
 
     if (chart !== null) {
@@ -301,6 +337,7 @@ function createChart(data) {
 
         type: "line",
 
+
         data: {
 
             labels: labels,
@@ -309,22 +346,29 @@ function createChart(data) {
 
                 {
                     label: "Budapest",
+
                     data: budapest,
 
                     borderWidth: 2,
 
                     pointRadius: 1,
 
+                    pointHoverRadius: 5,
+
                     tension: 0.15
                 },
 
+
                 {
                     label: "Paks",
+
                     data: paks,
 
                     borderWidth: 2,
 
                     pointRadius: 1,
+
+                    pointHoverRadius: 5,
 
                     tension: 0.15
                 }
@@ -360,9 +404,27 @@ function createChart(data) {
 
                 },
 
+
                 tooltip: {
 
                     callbacks: {
+
+                        title: function(context) {
+
+                            if (
+                                context.length === 0
+                            ) {
+
+                                return "";
+
+                            }
+
+                            return formatTime(
+                                context[0].parsed.x
+                            );
+
+                        },
+
 
                         label: function(context) {
 
@@ -386,19 +448,50 @@ function createChart(data) {
 
                 x: {
 
-                    title: {
+                    type: "time",
 
-                        display: true,
+                    time: {
 
-                        text: "Mérés időpontja"
+                        tooltipFormat:
+                            "yyyy.MM.dd. HH:mm",
+
+                        displayFormats: {
+
+                            hour:
+                                "MM.dd. HH:mm",
+
+                            day:
+                                "yyyy.MM.dd.",
+
+                            month:
+                                "yyyy.MM",
+
+                            year:
+                                "yyyy"
+
+                        }
 
                     },
+
 
                     ticks: {
 
                         maxTicksLimit: 12,
 
-                        autoSkip: true
+                        autoSkip: true,
+
+                        maxRotation: 0,
+
+                        minRotation: 0
+
+                    },
+
+
+                    title: {
+
+                        display: true,
+
+                        text: "Mérés időpontja"
 
                     }
 
@@ -426,9 +519,9 @@ function createChart(data) {
 }
 
 
-/* ----------------------------------------------------------
-   Indítás
----------------------------------------------------------- */
+/* ==========================================================
+   INDÍTÁS
+   ========================================================== */
 
 loadData();
 
